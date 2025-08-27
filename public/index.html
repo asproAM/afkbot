@@ -1,0 +1,919 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bots Command Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .console-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .header {
+            background-color: #111;
+            padding: 10px 20px;
+            border-bottom: 2px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .menu-btn {
+            background: none;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 30px;
+            height: 25px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .menu-btn:hover {
+            background-color: #003300;
+        }
+        
+        .menu-line {
+            width: 15px;
+            height: 2px;
+            background-color: #00ff00;
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 20px;
+            background-color: #111;
+            border: 1px solid #00ff00;
+            border-top: none;
+            display: none;
+            min-width: 150px;
+            z-index: 1000;
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            color: #00ff00;
+            font-size: 12px;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #003300;
+        }
+        
+        .dropdown-item.active {
+            background-color: #004400;
+            color: #66ff66;
+        }
+        
+        .header h1 {
+            color: #00ff00;
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #00ff00;
+            animation: pulse 2s infinite;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .view {
+            display: none;
+            width: 100%;
+        }
+        
+        .view.active {
+            display: flex;
+        }
+        
+        .terminal-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+        
+        .terminal {
+            flex: 1;
+            background-color: #000;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        
+        .command-input-container {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .prompt {
+            color: #00ff00;
+            margin-right: 5px;
+        }
+        
+        .command-input {
+            flex: 1;
+            background-color: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .command-input:focus {
+            outline: none;
+            border-color: #66ff66;
+            box-shadow: 0 0 5px #00ff0050;
+        }
+        
+        .execute-btn {
+            background-color: #003300;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 15px;
+            margin-left: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        
+        .execute-btn:hover {
+            background-color: #004400;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: #111;
+            border-left: 1px solid #00ff00;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .sidebar h3 {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .info-section {
+            margin-bottom: 20px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 11px;
+        }
+        
+        .info-label {
+            color: #888;
+        }
+        
+        .info-value {
+            color: #00ff00;
+        }
+        
+        .bot-list {
+            margin: 10px 0;
+        }
+        
+        .bot-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 10px;
+        }
+        
+        .bot-status {
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+        }
+        
+        .bot-status.online {
+            background-color: #003300;
+            color: #66ff66;
+            border: 1px solid #00ff00;
+        }
+        
+        .bot-status.offline {
+            background-color: #330000;
+            color: #ff6666;
+            border: 1px solid #ff4444;
+        }
+        
+        .commands-help {
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        
+        .command-example {
+            font-size: 10px;
+            color: #888;
+            margin: 2px 0;
+        }
+        
+        .log-line {
+            margin: 2px 0;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+        
+        .log-line.error {
+            color: #ff6666;
+        }
+        
+        .log-line.success {
+            color: #66ff66;
+        }
+        
+        .log-line.warning {
+            color: #ffff66;
+        }
+        
+        .log-line.command {
+            color: #66ffff;
+        }
+        
+        /* Bot State View Styles */
+        .bot-state-view {
+            padding: 20px;
+            width: 100%;
+            overflow-y: auto;
+        }
+        
+        .system-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .overview-card {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .card-title {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+        
+        .stat-label {
+            color: #888;
+        }
+        
+        .stat-value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        
+        .bots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .bot-card {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .bot-card.offline {
+            border-color: #ff4444;
+            opacity: 0.7;
+        }
+        
+        .bot-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .bot-title {
+            color: #00ff00;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .bot-card.offline .bot-title {
+            color: #ff6666;
+        }
+        
+        .connection-status {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        
+        .connection-status.online {
+            background-color: #003300;
+            color: #66ff66;
+            border: 1px solid #00ff00;
+        }
+        
+        .connection-status.offline {
+            background-color: #330000;
+            color: #ff6666;
+            border: 1px solid #ff4444;
+        }
+        
+        .bot-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 10px;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .terminal::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .terminal::-webkit-scrollbar-track {
+            background: #000;
+        }
+        
+        .terminal::-webkit-scrollbar-thumb {
+            background: #00ff00;
+        }
+        
+        .spam-status {
+            padding: 5px;
+            border: 1px solid #333;
+            margin: 5px 0;
+            font-size: 10px;
+        }
+        
+        .spam-status.active {
+            border-color: #ff6600;
+            color: #ff6600;
+        }
+    </style>
+</head>
+<body>
+    <div class="console-container">
+        <div class="header">
+            <div class="header-left">
+                <button class="menu-btn" id="menu-btn">
+                    <div class="menu-line"></div>
+                    <div class="menu-line"></div>
+                    <div class="menu-line"></div>
+                </button>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <div class="dropdown-item active" data-view="chat">Chat</div>
+                    <div class="dropdown-item" data-view="bot-state">Bot State</div>
+                </div>
+                <h1>DISCORD BOTS COMMAND CONSOLE</h1>
+            </div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-indicator"></span>
+                    <span>ONLINE</span>
+                </div>
+                <div class="status-item">
+                    <span>UPTIME: <span id="uptime">0s</span></span>
+                </div>
+                <div class="status-item">
+                    <span>BOTS: <span id="connected-bots">0</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <!-- Chat View (Original Interface) -->
+            <div class="view active" id="chat-view">
+                <div class="terminal-section">
+                    <div class="terminal" id="terminal">
+                        <div class="log-line">SYSTEM INITIALIZED</div>
+                        <div class="log-line">CONNECTING TO DISCORD GATEWAY...</div>
+                    </div>
+                    
+                    <div class="command-input-container">
+                        <span class="prompt">root@discord:~$</span>
+                        <input type="text" class="command-input" id="command-input" placeholder="Enter command (e.g., =spam Hello World!)">
+                        <button class="execute-btn" id="execute-btn">EXECUTE</button>
+                    </div>
+                </div>
+                
+                <div class="sidebar">
+                    <div class="info-section">
+                        <h3>SYSTEM STATUS</h3>
+                        <div class="info-row">
+                            <span class="info-label">Server</span>
+                            <span class="info-value">ACTIVE</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Requests</span>
+                            <span class="info-value" id="requests">0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Spam Status</span>
+                            <span class="info-value" id="spam-status">INACTIVE</span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>CONNECTED BOTS</h3>
+                        <div class="bot-list" id="bot-list">
+                            <div class="bot-item">
+                                <span>Bot 1</span>
+                                <span class="bot-status offline" id="bot1">OFFLINE</span>
+                            </div>
+                            <div class="bot-item">
+                                <span>Bot 2</span>
+                                <span class="bot-status offline" id="bot2">OFFLINE</span>
+                            </div>
+                            <div class="bot-item">
+                                <span>Bot 3</span>
+                                <span class="bot-status offline" id="bot3">OFFLINE</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="commands-help">
+                        <h3>AVAILABLE COMMANDS</h3>
+                        <div class="command-example">=spam &lt;message&gt;</div>
+                        <div class="command-example">=timespam &lt;time&gt; (e.g., 5s, 2m, 1h)</div>
+                        <div class="command-example">=spamoff</div>
+                        <div class="command-example">=join &lt;channel_id&gt;</div>
+                        <div class="command-example">=leave</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bot State View -->
+            <div class="view" id="bot-state-view">
+                <div class="bot-state-view">
+                    <div class="system-overview">
+                        <div class="overview-card">
+                            <div class="card-title">System Information</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Server Status:</span>
+                                    <span class="stat-value">ACTIVE</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Uptime:</span>
+                                    <span class="stat-value" id="system-uptime">0s</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Requests:</span>
+                                    <span class="stat-value" id="system-requests">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Memory Usage:</span>
+                                    <span class="stat-value">N/A</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-card">
+                            <div class="card-title">Bot Management</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Bots:</span>
+                                    <span class="stat-value" id="total-bots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Connected:</span>
+                                    <span class="stat-value" id="connected-count">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Disconnected:</span>
+                                    <span class="stat-value" id="disconnected-count">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Error Rate:</span>
+                                    <span class="stat-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-card">
+                            <div class="card-title">Spam Operations</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Status:</span>
+                                    <span class="stat-value" id="spam-state">INACTIVE</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Active Bots:</span>
+                                    <span class="stat-value" id="spam-bots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Interval:</span>
+                                    <span class="stat-value" id="spam-interval">5000ms</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Last Message:</span>
+                                    <span class="stat-value" id="last-message">None</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overview-card">
+                            <div class="card-title">Discord Connection</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Gateway Status:</span>
+                                    <span class="stat-value">CONNECTED</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Voice Channels:</span>
+                                    <span class="stat-value" id="voice-channels">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Reconnections:</span>
+                                    <span class="stat-value">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Last Ping:</span>
+                                    <span class="stat-value">0ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="color: #00ff00; margin-bottom: 15px; text-align: center;">Individual Bot Status</h3>
+                    <div class="bots-grid" id="bots-grid">
+                        <!-- Bot cards will be dynamically generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const commandInput = document.getElementById('command-input');
+        const executeBtn = document.getElementById('execute-btn');
+        const uptimeElement = document.getElementById('uptime');
+        const requestsElement = document.getElementById('requests');
+        const connectedBotsElement = document.getElementById('connected-bots');
+        const spamStatusElement = document.getElementById('spam-status');
+        const menuBtn = document.getElementById('menu-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const startTime = Date.now();
+        
+        let botStatuses = { 1: false, 2: false, 3: false };
+        let currentView = 'chat';
+        let systemData = {};
+        
+        // Menu functionality
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', () => {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        dropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.classList.contains('dropdown-item')) {
+                const view = e.target.dataset.view;
+                switchView(view);
+                
+                // Update active state
+                document.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                dropdownMenu.classList.remove('show');
+            }
+        });
+        
+        function switchView(view) {
+            currentView = view;
+            
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => {
+                v.classList.remove('active');
+            });
+            
+            // Show selected view
+            const targetView = document.getElementById(`${view}-view`);
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+            
+            // Update bot state view if switching to it
+            if (view === 'bot-state') {
+                updateBotStateView();
+            }
+        }
+        
+        function updateUptime() {
+            const uptime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(uptime / 60);
+            const seconds = uptime % 60;
+            const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+            uptimeElement.textContent = timeStr;
+            
+            // Also update system uptime in bot state view
+            const systemUptimeElement = document.getElementById('system-uptime');
+            if (systemUptimeElement) {
+                systemUptimeElement.textContent = timeStr;
+            }
+        }
+        
+        function addLogLine(message, type = 'normal') {
+            const cleanMessage = message.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').trim();
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            logLine.textContent = `[${timestamp}] ${cleanMessage}`;
+            terminal.appendChild(logLine);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            if (terminal.children.length > 200) {
+                terminal.removeChild(terminal.firstChild);
+            }
+        }
+        
+        function updateBotStatus(botNumber, isOnline, username = '') {
+            const botElement = document.getElementById(`bot${botNumber}`);
+            botStatuses[botNumber] = isOnline;
+            
+            if (isOnline) {
+                botElement.className = 'bot-status online';
+                botElement.textContent = username ? `ONLINE (${username})` : 'ONLINE';
+            } else {
+                botElement.className = 'bot-status offline';
+                botElement.textContent = 'OFFLINE';
+            }
+            
+            const connectedCount = Object.values(botStatuses).filter(Boolean).length;
+            connectedBotsElement.textContent = connectedCount;
+            
+            // Update bot state view
+            updateBotStateView();
+        }
+        
+        function updateBotStateView() {
+            const botsGrid = document.getElementById('bots-grid');
+            const connectedCount = Object.values(botStatuses).filter(Boolean).length;
+            const totalBots = Object.keys(botStatuses).length;
+            
+            // Update overview cards
+            document.getElementById('total-bots').textContent = totalBots;
+            document.getElementById('connected-count').textContent = connectedCount;
+            document.getElementById('disconnected-count').textContent = totalBots - connectedCount;
+            document.getElementById('system-requests').textContent = systemData.requests || 0;
+            document.getElementById('spam-state').textContent = systemData.spamStatus ? 'ACTIVE' : 'INACTIVE';
+            document.getElementById('spam-bots').textContent = connectedCount;
+            document.getElementById('voice-channels').textContent = connectedCount;
+            
+            // Generate bot cards
+            botsGrid.innerHTML = '';
+            Object.keys(botStatuses).forEach(botNumber => {
+                const isOnline = botStatuses[botNumber];
+                const botCard = document.createElement('div');
+                botCard.className = `bot-card ${isOnline ? 'online' : 'offline'}`;
+                
+                botCard.innerHTML = `
+                    <div class="bot-card-header">
+                        <div class="bot-title">Bot ${botNumber}</div>
+                        <div class="connection-status ${isOnline ? 'online' : 'offline'}">
+                            ${isOnline ? 'CONNECTED' : 'DISCONNECTED'}
+                        </div>
+                    </div>
+                    <div class="bot-details">
+                        <div class="stat-row">
+                            <span class="stat-label">Username:</span>
+                            <span class="stat-value">${isOnline ? 'User#0000' : 'N/A'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Discord ID:</span>
+                            <span class="stat-value">${isOnline ? '1366011410563207188' : 'N/A'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Voice Channel:</span>
+                            <span class="stat-value">${isOnline ? 'Connected' : 'None'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Status:</span>
+                            <span class="stat-value">${isOnline ? 'Idle' : 'Offline'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Last Heartbeat:</span>
+                            <span class="stat-value">${isOnline ? 'Just now' : 'N/A'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Messages Sent:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Errors:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                    </div>
+                `;
+                
+                botsGrid.appendChild(botCard);
+            });
+        }
+        
+        async function executeCommand() {
+            const command = commandInput.value.trim();
+            if (!command) return;
+            
+            addLogLine(`> ${command}`, 'command');
+            commandInput.value = '';
+            
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLogLine(result.message, 'success');
+                } else {
+                    addLogLine(`ERROR: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                addLogLine(`ERROR: ${error.message}`, 'error');
+            }
+        }
+        
+        executeBtn.addEventListener('click', executeCommand);
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executeCommand();
+        });
+        
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                const data = await response.json();
+                
+                systemData = data;
+                
+                requestsElement.textContent = data.requests || 0;
+                spamStatusElement.textContent = data.spamStatus ? 'ACTIVE' : 'INACTIVE';
+                spamStatusElement.style.color = data.spamStatus ? '#ff6600' : '#00ff00';
+                
+                if (data.logs && data.logs.length > 0) {
+                    data.logs.forEach(log => {
+                        let type = 'normal';
+                        
+                        if (log.includes('error') || log.includes('Error') || log.includes('Bad token')) {
+                            type = 'error';
+                        } else if (log.includes('logged in') || log.includes('joined successfully') || log.includes('ready')) {
+                            type = 'success';
+                        } else if (log.includes('connected') || log.includes('Starting bot')) {
+                            type = 'normal';
+                        } else if (log.includes('warn') || log.includes('Invalid')) {
+                            type = 'warning';
+                        }
+                        
+                        // Update bot status
+                        if (log.includes('Bot 1') && log.includes('logged in as')) {
+                            const username = log.match(/as (.+?)$/)?.[1] || '';
+                            updateBotStatus(1, true, username);
+                        } else if (log.includes('Bot 2') && log.includes('logged in as')) {
+                            const username = log.match(/as (.+?)$/)?.[1] || '';
+                            updateBotStatus(2, true, username);
+                        } else if (log.includes('Bot 3') && log.includes('logged in as')) {
+                            const username = log.match(/as (.+?)$/)?.[1] || '';
+                            updateBotStatus(3, true, username);
+                        }
+                        
+                        if (log.includes('disconnected')) {
+                            const botMatch = log.match(/Bot (\d+)/);
+                            if (botMatch) {
+                                updateBotStatus(parseInt(botMatch[1]), false);
+                            }
+                        }
+                    });
+                }
+                
+                // Update bot state view if currently active
+                if (currentView === 'bot-state') {
+                    updateBotStateView();
+                }
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+            }
+        }
+        
+        // Update every 2 seconds
+        setInterval(fetchLogs, 2000);
+        setInterval(updateUptime, 1000);
+        
+        // Initial fetch
+        fetchLogs();
+        updateUptime();
+        updateBotStateView();
+        
+        // Focus on command input
+        commandInput.focus();
+    </script>
+</body>
+</html>
