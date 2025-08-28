@@ -1,0 +1,53 @@
+{
+  "nextTokenNumber": 7,
+  "tokens": [
+    {
+      "tokenKey": "token1",
+      "fileName": "token1.json",
+      "serverId": "1409643963480281110",
+      "channelId": "1409676167098663135",
+      "createdAt": "2025-08-27T16:40:22.586Z",
+      "active": false
+    },
+    {
+      "tokenKey": "token2",
+      "fileName": "token2.json",
+      "serverId": "1409643963480281110",
+      "channelId": "1409676167098663135",
+      "createdAt": "2025-08-27T16:51:44.233Z",
+      "active": false
+    },
+    {
+      "tokenKey": "token3",
+      "fileName": "token3.json",
+      "serverId": "1409643963480281110",
+      "channelId": "1409676167098663135",
+      "createdAt": "2025-08-27T16:53:46.105Z",
+      "active": false
+    },
+    {
+      "tokenKey": "token4",
+      "fileName": "token4.json",
+      "serverId": "1409643963480281110",
+      "channelId": "1409676167098663135",
+      "createdAt": "2025-08-27T16:54:29.988Z",
+      "active": false
+    },
+    {
+      "tokenKey": "token5",
+      "fileName": "token5.json",
+      "serverId": "1409643963480281110",
+      "channelId": "1409676167098663135",
+      "createdAt": "2025-08-27T17:05:55.864Z",
+      "active": true
+    },
+    {
+      "tokenKey": "token6",
+      "fileName": "token6.json",
+      "serverId": "1409676167098663135",
+      "channelId": "1409643963480281110",
+      "createdAt": "2025-08-27T17:10:28.762Z",
+      "active": true
+    }
+  ]
+}
