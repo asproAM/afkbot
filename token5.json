@@ -1,0 +1,18 @@
+{
+  "tokenKey": "token5",
+  "token": "MTM1NTkxNDE5MTM1Mjg4OTY1NQ.GnTtsT.qBUhxex-BOA6fM4UkOyTU9YP3e-sGHpuHSboGc",
+  "serverId": "1409643963480281110",
+  "channelId": "1409676167098663135",
+  "selfDeaf": false,
+  "selfMute": false,
+  "autoReconnect": {
+    "enabled": true,
+    "delay": 5,
+    "maxRetries": 5
+  },
+  "presence": {
+    "status": "idle"
+  },
+  "createdAt": "2025-08-27T17:05:55.864Z",
+  "active": true
+}

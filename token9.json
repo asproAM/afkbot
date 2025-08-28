@@ -1,0 +1,18 @@
+{
+  "tokenKey": "token9",
+  "token": "",
+  "serverId": "",
+  "channelId": "",
+  "selfDeaf": false,
+  "selfMute": false,
+  "autoReconnect": {
+    "enabled": true,
+    "delay": 5,
+    "maxRetries": 5
+  },
+  "presence": {
+    "status": "idle"
+  },
+  "createdAt": "2025-08-27T19:46:57.960Z",
+  "active": false
+}
