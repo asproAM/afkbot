@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bots Command Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .console-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background-color: #111;
+            padding: 10px 20px;
+            border-bottom: 2px solid #00ff00;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 30px;
+            height: 25px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-btn:hover {
+            background-color: #003300;
+        }
+
+        .menu-line {
+            width: 15px;
+            height: 2px;
+            background-color: #00ff00;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 20px;
+            background-color: #111;
+            border: 1px solid #00ff00;
+            border-top: none;
+            display: none;
+            min-width: 150px;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+            color: #00ff00;
+            font-size: 12px;
+        }
+
+        .dropdown-item:hover {
+            background-color: #003300;
+        }
+
+        .dropdown-item.active {
+            background-color: #004400;
+            color: #66ff66;
+        }
+
+        .header h1 {
+            color: #00ff00;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .view {
+            display: none;
+            width: 100%;
+        }
+
+        .view.active {
+            display: flex;
+        }
+
+        .terminal-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .terminal {
+            flex: 1;
+            background-color: #000;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        .command-input-container {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .prompt {
+            color: #00ff00;
+            margin-right: 5px;
+        }
+
+        .command-input {
+            flex: 1;
+            background-color: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .command-input:focus {
+            outline: none;
+            border-color: #66ff66;
+            box-shadow: 0 0 5px #00ff0050;
+        }
+
+        .execute-btn {
+            background-color: #003300;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px 15px;
+            margin-left: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .execute-btn:hover {
+            background-color: #004400;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #111;
+            border-left: 1px solid #00ff00;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .sidebar h3 {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 11px;
+        }
+
+        .info-label {
+            color: #888;
+        }
+
+        .info-value {
+            color: #00ff00;
+        }
+
+        .bot-list {
+            margin: 10px 0;
+        }
+
+        .bot-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            font-size: 10px;
+        }
+
+        .bot-status {
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+        }
+
+        .bot-status.online {
+            background-color: #003300;
+            color: #66ff66;
+            border: 1px solid #00ff00;
+        }
+
+        .bot-status.offline {
+            background-color: #330000;
+            color: #ff6666;
+            border: 1px solid #ff4444;
+        }
+
+        .commands-help {
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        .command-example {
+            background-color: rgba(0, 255, 0, 0.1);
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-left: 3px solid #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .command-input-group {
+            display: flex;
+            margin-bottom: 8px;
+            gap: 5px;
+        }
+
+        .command-input-group input.command-input {
+            flex: 2;
+            padding: 5px;
+        }
+
+        .command-input-group .execute-btn {
+            flex: 1;
+            padding: 5px 10px;
+            font-size: 10px;
+        }
+
+        .commands-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .command-btn {
+            background-color: #003300;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        .command-btn:hover {
+            background-color: #004400;
+        }
+
+        
+
+        .log-line {
+            margin: 2px 0;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        .log-line.error {
+            color: #ff6666;
+        }
+
+        .log-line.success {
+            color: #66ff66;
+        }
+
+        .log-line.warning {
+            color: #ffff66;
+        }
+
+        .log-line.command {
+            color: #66ffff;
+        }
+
+        /* Bot State View Styles */
+        .bot-state-view {
+            padding: 20px;
+            width: 100%;
+            overflow-y: auto;
+        }
+
+        .system-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .overview-card {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .card-title {
+            color: #00ff00;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .stat-label {
+            color: #888;
+        }
+
+        .stat-value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .bots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .bot-card {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .bot-card.offline {
+            border-color: #ff4444;
+            opacity: 0.7;
+        }
+
+        .bot-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .bot-title {
+            color: #00ff00;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .bot-card.offline .bot-title {
+            color: #ff6666;
+        }
+
+        .connection-status {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .connection-status.online {
+            background-color: #003300;
+            color: #66ff66;
+            border: 1px solid #00ff00;
+        }
+
+        .connection-status.offline {
+            background-color: #330000;
+            color: #ff6666;
+            border: 1px solid #ff4444;
+        }
+
+        .bot-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 10px;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .terminal::-webkit-scrollbar,
+        .main-logs-container::-webkit-scrollbar,
+        .commands-logs-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .terminal::-webkit-scrollbar-track,
+        .main-logs-container::-webkit-scrollbar-track,
+        .commands-logs-container::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        .terminal::-webkit-scrollbar-thumb,
+        .main-logs-container::-webkit-scrollbar-thumb,
+        .commands-logs-container::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 3px;
+        }
+
+        .terminal::-webkit-scrollbar-thumb:hover,
+        .main-logs-container::-webkit-scrollbar-thumb:hover,
+        .commands-logs-container::-webkit-scrollbar-thumb:hover {
+            background: #66ff66;
+        }
+
+        .spam-status {
+            padding: 5px;
+            border: 1px solid #333;
+            margin: 5px 0;
+            font-size: 10px;
+        }
+
+        .spam-status.active {
+            border-color: #ff6600;
+            color: #ff6600;
+        }
+    </style>
+</head>
+<body>
+    <div class="console-container">
+        <div class="header">
+            <div class="header-left">
+                <button class="menu-btn" id="menu-btn">
+                    <div class="menu-line"></div>
+                    <div class="menu-line"></div>
+                    <div class="menu-line"></div>
+                </button>
+                <div class="dropdown-menu" id="dropdown-menu">
+                    <div class="dropdown-item active" data-view="chat">Chat</div>
+                    <div class="dropdown-item" data-view="token-management">Token Management</div>
+                    <div class="dropdown-item" data-view="bot-state">Bot State</div>
+                    <div class="dropdown-item" data-view="logs">Logs</div>
+                </div>
+                <h1>DISCORD BOTS COMMAND CONSOLE</h1>
+            </div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-indicator"></span>
+                    <span>ONLINE</span>
+                </div>
+                <div class="status-item">
+                    <span>UPTIME: <span id="uptime">0s</span></span>
+                </div>
+                <div class="status-item">
+                    <span>BOTS: <span id="connected-bots">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Chat View (Original Interface) -->
+            <div class="view active" id="chat-view">
+                <div class="terminal-section">
+                    <div class="terminal" id="terminal">
+                        <div class="log-line">SYSTEM INITIALIZED</div>
+                        <div class="log-line">CONNECTING TO DISCORD GATEWAY...</div>
+                    </div>
+
+                    <div class="command-input-container">
+                        <span class="prompt">root@discord:~$</span>
+                        <input type="text" class="command-input" id="command-input" placeholder="Enter command (e.g., =spam Hello World!)">
+                        <button class="execute-btn" id="execute-btn">EXECUTE</button>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="info-section">
+                        <h3>SYSTEM STATUS</h3>
+                        <div class="info-row">
+                            <span class="info-label">Server</span>
+                            <span class="info-value">ACTIVE</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Requests</span>
+                            <span class="info-value" id="requests">0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Spam Status</span>
+                            <span class="info-value" id="spam-status">INACTIVE</span>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3>CONNECTED BOTS</h3>
+                        <div class="bot-list" id="bot-list">
+                            <div class="bot-item">
+                                <span>Bot 1</span>
+                                <span class="bot-status offline" id="bot1">OFFLINE</span>
+                            </div>
+                            <div class="bot-item">
+                                <span>Bot 2</span>
+                                <span class="bot-status offline" id="bot2">OFFLINE</span>
+                            </div>
+                            <div class="bot-item">
+                                <span>Bot 3</span>
+                                <span class="bot-status offline" id="bot3">OFFLINE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="commands-help">
+                        <h4>Token Management:</h4>
+                        
+                        <!-- Token Addition Form -->
+                        <div class="token-management-section">
+                            <h5 style="color: #00ff00; font-size: 12px; margin: 10px 0 5px 0;">Add New Bot Token:</h5>
+                            
+                            <!-- Token Input -->
+                            <div class="command-input-group">
+                                <input type="password" class="command-input" id="botToken" placeholder="Discord Bot Token (or use Secrets)">
+                                <button class="execute-btn" onclick="toggleTokenVisibility()" style="max-width: 40px;">👁️</button>
+                            </div>
+                            
+                            <!-- Server ID -->
+                            <div class="command-input-group">
+                                <input type="text" class="command-input" id="serverId" placeholder="Server ID">
+                            </div>
+                            
+                            <!-- Channel ID -->
+                            <div class="command-input-group">
+                                <input type="text" class="command-input" id="channelId" placeholder="Voice Channel ID">
+                            </div>
+                            
+                            <!-- Secrets Integration -->
+                            <div style="margin: 10px 0; padding: 8px; border: 1px solid #333; border-radius: 3px; background-color: rgba(0,255,0,0.05);">
+                                <div style="font-size: 10px; color: #888; margin-bottom: 5px;">💡 Tip: Use Replit Secrets for secure token storage</div>
+                                <div class="command-input-group">
+                                    <input type="text" class="command-input" id="secretKey" placeholder="Secret Key (e.g. BOT_TOKEN_1)" style="font-size: 10px;">
+                                    <button class="execute-btn" onclick="useSecret()" style="font-size: 9px;">Use Secret</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Add Bot Button -->
+                            <button class="execute-btn" onclick="addBotAdvanced()" style="width: 100%; margin: 5px 0; background-color: #004400;">
+                                ➕ Add Bot
+                            </button>
+                        </div>
+
+                        <div class="divider" style="border-top: 1px solid #333; margin: 15px 0;"></div>
+
+                        <h4>Quick Commands:</h4>
+
+                        <!-- Spam Commands -->
+                        <div class="command-input-group">
+                            <input type="text" class="command-input" id="spamMsg" placeholder="Message">
+                            <button class="execute-btn" onclick="executeCommand('spam', document.getElementById('spamMsg').value)">Spam</button>
+                        </div>
+
+                        <div class="command-input-group">
+                            <input type="text" class="command-input" id="timeSpam" placeholder="5s, 2m, 1h">
+                            <button class="execute-btn" onclick="executeCommand('timespam', document.getElementById('timeSpam').value)">Time</button>
+                        </div>
+
+                        <div class="commands-grid">
+                            <button class="command-btn" onclick="executeCommand('spamoff')">Stop Spam</button>
+                            <button class="command-btn" onclick="executeCommand('cmnd')">Commands</button>
+                        </div>
+
+                        <!-- Voice Commands -->
+                        <div class="command-input-group">
+                            <input type="text" class="command-input" id="voiceChannelId" placeholder="Channel ID">
+                            <button class="execute-btn" onclick="executeCommand('join', document.getElementById('voiceChannelId').value)">Join</button>
+                        </div>
+
+                        <div class="commands-grid">
+                            <button class="command-btn" onclick="executeCommand('leave')">Leave</button>
+                            <button class="command-btn" onclick="executeCommand('botstatus')">Status</button>
+                        </div>
+
+                        <!-- Bot Management -->
+                        <div class="commands-grid">
+                            <button class="command-btn" onclick="executeCommand('listtokens')">List Bots</button>
+                            <button class="command-btn" onclick="executeCommand('forcereconnect')">Reconnect</button>
+                        </div>
+
+                        <!-- Reaction Commands -->
+                        <div class="commands-grid">
+                            <button class="command-btn" onclick="executeCommand('reon')">React On</button>
+                            <button class="command-btn" onclick="executeCommand('reoff')">React Off</button>
+                        </div>
+
+                        <div class="command-input-group">
+                            <input type="text" class="command-input" id="emojiAdd" placeholder="😀 or emoji">
+                            <button class="execute-btn" onclick="executeCommand('addimoji', document.getElementById('emojiAdd').value)">Add</button>
+                        </div>
+
+                        <div class="commands-grid">
+                            <button class="command-btn" onclick="executeCommand('menuimoji')">Emoji List</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bot State View -->
+            <div class="view" id="bot-state-view">
+                <div class="bot-state-view">
+                    <div class="system-overview">
+                        <div class="overview-card">
+                            <div class="card-title">System Information</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Server Status:</span>
+                                    <span class="stat-value">ACTIVE</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Uptime:</span>
+                                    <span class="stat-value" id="system-uptime">0s</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Requests:</span>
+                                    <span class="stat-value" id="system-requests">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Memory Usage:</span>
+                                    <span class="stat-value">N/A</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="card-title">Bot Management</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Total Bots:</span>
+                                    <span class="stat-value" id="total-bots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Connected:</span>
+                                    <span class="stat-value" id="connected-count">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Disconnected:</span>
+                                    <span class="stat-value" id="disconnected-count">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Error Rate:</span>
+                                    <span class="stat-value">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="card-title">Spam Operations</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Status:</span>
+                                    <span class="stat-value" id="spam-state">INACTIVE</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Active Bots:</span>
+                                    <span class="stat-value" id="spam-bots">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Interval:</span>
+                                    <span class="stat-value" id="spam-interval">5000ms</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Last Message:</span>
+                                    <span class="stat-value" id="last-message">None</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overview-card">
+                            <div class="card-title">Discord Connection</div>
+                            <div class="card-content">
+                                <div class="stat-row">
+                                    <span class="stat-label">Gateway Status:</span>
+                                    <span class="stat-value">CONNECTED</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Voice Channels:</span>
+                                    <span class="stat-value" id="voice-channels">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Reconnections:</span>
+                                    <span class="stat-value">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Last Ping:</span>
+                                    <span class="stat-value">0ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="color: #00ff00; margin-bottom: 15px; text-align: center;">Individual Bot Status</h3>
+                    <div class="bots-grid" id="bots-grid">
+                        <!-- Bot cards will be dynamically generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Token Management View -->
+            <div class="view" id="token-management-view">
+                <div class="token-management-container" style="display: flex; flex-direction: column; height: 100%; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="color: #00ff00; margin: 0;">Token Management</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="command-btn" onclick="refreshTokens()">Refresh</button>
+                            <button class="command-btn" onclick="executeCommand('listtokens')">List All</button>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 100%;">
+                        <!-- Add New Token -->
+                        <div class="token-panel" style="border: 1px solid #00ff00; padding: 15px; border-radius: 5px;">
+                            <h3 style="color: #00ff00; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 5px;">Add New Bot</h3>
+                            
+                            <!-- Token Input Methods -->
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: #888; font-size: 11px; display: block; margin-bottom: 5px;">Method 1: Direct Token Input</label>
+                                <div class="command-input-group" style="margin-bottom: 10px;">
+                                    <input type="password" class="command-input" id="newToken" placeholder="Paste Discord Bot Token">
+                                    <button class="execute-btn" onclick="toggleTokenVisibility('newToken')" style="max-width: 40px; font-size: 10px;">👁️</button>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #333; border-radius: 3px; background-color: rgba(0,255,0,0.05);">
+                                <label style="color: #888; font-size: 11px; display: block; margin-bottom: 5px;">Method 2: Use Replit Secrets (Recommended)</label>
+                                <div class="command-input-group" style="margin-bottom: 10px;">
+                                    <input type="text" class="command-input" id="secretKeyInput" placeholder="Secret Key (e.g. BOT_TOKEN_1)">
+                                    <button class="execute-btn" onclick="loadFromSecret()" style="font-size: 10px;">Load</button>
+                                </div>
+                                <div style="font-size: 9px; color: #666; margin-top: 5px;">
+                                    💡 Go to Tools > Secrets to add your tokens securely
+                                </div>
+                            </div>
+
+                            <!-- Server and Channel -->
+                            <div style="margin-bottom: 15px;">
+                                <label style="color: #888; font-size: 11px; display: block; margin-bottom: 5px;">Server Configuration</label>
+                                <div class="command-input-group" style="margin-bottom: 5px;">
+                                    <input type="text" class="command-input" id="newServerId" placeholder="Discord Server ID">
+                                </div>
+                                <div class="command-input-group" style="margin-bottom: 5px;">
+                                    <input type="text" class="command-input" id="newChannelId" placeholder="Voice Channel ID">
+                                </div>
+                            </div>
+
+                            <!-- Add Button -->
+                            <button class="execute-btn" onclick="addBotToken()" style="width: 100%; background-color: #004400; color: #66ff66; font-weight: bold;">
+                                ➕ Add Bot Token
+                            </button>
+
+                            <!-- Help Section -->
+                            <div style="margin-top: 20px; padding: 10px; border: 1px solid #333; border-radius: 3px; background-color: rgba(255,255,0,0.05);">
+                                <h4 style="color: #ffff66; font-size: 11px; margin-bottom: 8px;">How to get IDs:</h4>
+                                <div style="font-size: 9px; color: #888; line-height: 1.4;">
+                                    1. Enable Developer Mode in Discord<br>
+                                    2. Right-click server → Copy Server ID<br>
+                                    3. Right-click voice channel → Copy Channel ID<br>
+                                    4. Create bot at discord.com/developers
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Token List -->
+                        <div class="token-panel" style="border: 1px solid #00ff00; padding: 15px; border-radius: 5px;">
+                            <h3 style="color: #00ff00; margin-bottom: 15px; text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 5px;">Current Tokens</h3>
+                            
+                            <div id="token-list-container" style="height: 400px; overflow-y: auto; background-color: #000; border: 1px solid #333; padding: 10px;">
+                                <div id="token-list-content">
+                                    <div class="log-entry" style="color: #888;">No tokens loaded. Add tokens to see them here.</div>
+                                </div>
+                            </div>
+
+                            <!-- Token Actions -->
+                            <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <button class="command-btn" onclick="executeCommand('forcereconnect')" style="background-color: #004400;">
+                                    🔄 Reconnect All
+                                </button>
+                                <button class="command-btn" onclick="executeCommand('botstatus')" style="background-color: #000044;">
+                                    📊 Bot Status
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs View -->
+            <div class="view" id="logs-view">
+                <div class="logs-view-container" style="display: flex; flex-direction: column; height: 100%; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="color: #00ff00; margin: 0;">System Logs Monitor</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="command-btn" id="refresh-logs-btn">Refresh</button>
+                            <button class="command-btn" id="clear-main-logs-btn" style="background-color: #660000; border-color: #ff4444;">Clear All</button>
+                            <button class="command-btn" id="export-logs-btn">Export</button>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 100%;">
+                        <!-- System Logs -->
+                        <div class="logs-panel">
+                            <h3 style="color: #00ff00; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 5px;">System Logs</h3>
+                            <div class="main-logs-container" style="height: calc(100% - 40px); background-color: #000; border: 1px solid #00ff00; padding: 10px; overflow-y: scroll; overflow-x: hidden; font-family: 'Courier New', monospace; font-size: 11px; max-height: 400px;">
+                                <div id="main-logs-content" style="word-wrap: break-word; white-space: pre-wrap;">
+                                    <div class="log-entry">System logs will appear here...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Commands History -->
+                        <div class="logs-panel">
+                            <h3 style="color: #00ff00; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 5px;">Commands History</h3>
+                            <div class="commands-logs-container" style="height: calc(100% - 40px); background-color: #000; border: 1px solid #00ff00; padding: 10px; overflow-y: scroll; overflow-x: hidden; font-family: 'Courier New', monospace; font-size: 11px; max-height: 400px;">
+                                <div id="commands-logs-content" style="word-wrap: break-word; white-space: pre-wrap;">
+                                    <div class="log-entry">Commands history will appear here...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Bar -->
+                    <div style="margin-top: 20px; display: flex; justify-content: space-around; background-color: #111; border: 1px solid #00ff00; padding: 10px; border-radius: 5px;">
+                        <div style="text-align: center;">
+                            <div style="color: #888; font-size: 10px;">Total Logs</div>
+                            <div style="color: #00ff00; font-weight: bold;" id="total-logs-count">0</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #888; font-size: 10px;">Errors</div>
+                            <div style="color: #ff4444; font-weight: bold;" id="error-logs-count">0</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #888; font-size: 10px;">Warnings</div>
+                            <div style="color: #ffaa00; font-weight: bold;" id="warning-logs-count">0</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #888; font-size: 10px;">Commands</div>
+                            <div style="color: #66ffff; font-weight: bold;" id="commands-count">0</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #888; font-size: 10px;">Last Update</div>
+                            <div style="color: #00ff00; font-weight: bold;" id="last-update-time">Never</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const commandInput = document.getElementById('command-input');
+        const executeBtn = document.getElementById('execute-btn');
+        const uptimeElement = document.getElementById('uptime');
+        const requestsElement = document.getElementById('requests');
+        const connectedBotsElement = document.getElementById('connected-bots');
+        const spamStatusElement = document.getElementById('spam-status');
+        const menuBtn = document.getElementById('menu-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const startTime = Date.now();
+        
+
+        let botStatuses = { 1: false, 2: false, 3: false };
+        let currentView = 'chat';
+        let systemData = {};
+
+        // Menu functionality
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            dropdownMenu.classList.remove('show');
+        });
+
+        dropdownMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.classList.contains('dropdown-item')) {
+                const view = e.target.dataset.view;
+                switchView(view);
+
+                // Update active state
+                document.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                e.target.classList.add('active');
+
+                dropdownMenu.classList.remove('show');
+            }
+        });
+
+        function switchView(view) {
+            currentView = view;
+
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => {
+                v.classList.remove('active');
+            });
+
+            // Show selected view
+            const targetView = document.getElementById(`${view}-view`);
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+
+            // Update views based on selection
+            if (view === 'bot-state') {
+                updateBotStateView();
+            } else if (view === 'logs') {
+                updateLogsView();
+            } else if (view === 'token-management') {
+                updateTokenManagementView();
+            }
+        }
+
+        function updateUptime() {
+            const uptime = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(uptime / 60);
+            const seconds = uptime % 60;
+            const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+            uptimeElement.textContent = timeStr;
+
+            // Also update system uptime in bot state view
+            const systemUptimeElement = document.getElementById('system-uptime');
+            if (systemUptimeElement) {
+                systemUptimeElement.textContent = timeStr;
+            }
+        }
+
+        function addLogLine(message, type = 'normal') {
+            const cleanMessage = message.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '').trim();
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+
+            const timestamp = new Date().toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            logLine.textContent = `[${timestamp}] ${cleanMessage}`;
+            terminal.appendChild(logLine);
+            terminal.scrollTop = terminal.scrollHeight;
+
+            if (terminal.children.length > 200) {
+                terminal.removeChild(terminal.firstChild);
+            }
+        }
+
+        function updateBotStatus(botNumber, isOnline, username = '') {
+            const botElement = document.getElementById(`bot${botNumber}`);
+            botStatuses[botNumber] = isOnline;
+
+            if (isOnline) {
+                botElement.className = 'bot-status online';
+                botElement.textContent = username ? `ONLINE (${username})` : 'ONLINE';
+            } else {
+                botElement.className = 'bot-status offline';
+                botElement.textContent = 'OFFLINE';
+            }
+
+            const connectedCount = Object.values(botStatuses).filter(Boolean).length;
+            connectedBotsElement.textContent = connectedCount;
+
+            // Update bot state view
+            updateBotStateView();
+        }
+
+        function updateBotStateView() {
+            const botsGrid = document.getElementById('bots-grid');
+            const connectedCount = Object.values(botStatuses).filter(Boolean).length;
+            const totalBots = Object.keys(botStatuses).length;
+
+            // Update overview cards
+            document.getElementById('total-bots').textContent = totalBots;
+            document.getElementById('connected-count').textContent = connectedCount;
+            document.getElementById('disconnected-count').textContent = totalBots - connectedCount;
+            document.getElementById('system-requests').textContent = systemData.requests || 0;
+            document.getElementById('spam-state').textContent = systemData.spamStatus ? 'ACTIVE' : 'INACTIVE';
+            document.getElementById('spam-bots').textContent = connectedCount;
+            document.getElementById('voice-channels').textContent = connectedCount;
+
+            // Generate bot cards
+            botsGrid.innerHTML = '';
+            Object.keys(botStatuses).forEach(botNumber => {
+                const isOnline = botStatuses[botNumber];
+                const botCard = document.createElement('div');
+                botCard.className = `bot-card ${isOnline ? 'online' : 'offline'}`;
+
+                botCard.innerHTML = `
+                    <div class="bot-card-header">
+                        <div class="bot-title">Bot ${botNumber}</div>
+                        <div class="connection-status ${isOnline ? 'online' : 'offline'}">
+                            ${isOnline ? 'CONNECTED' : 'DISCONNECTED'}
+                        </div>
+                    </div>
+                    <div class="bot-details">
+                        <div class="stat-row">
+                            <span class="stat-label">Username:</span>
+                            <span class="stat-value">${isOnline ? 'User#0000' : 'N/A'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Discord ID:</span>
+                            <span class="stat-value">${isOnline ? '1366011410563207188' : 'N/A'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Voice Channel:</span>
+                            <span class="stat-value">${isOnline ? 'Connected' : 'None'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Status:</span>
+                            <span class="stat-value">${isOnline ? 'Idle' : 'Offline'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Last Heartbeat:</span>
+                            <span class="stat-value">${isOnline ? 'Just now' : 'N/A'}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Messages Sent:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Errors:</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                    </div>
+                `;
+
+                botsGrid.appendChild(botCard);
+            });
+        }
+
+        function updateLogsView() {
+            if (currentView !== 'logs') return;
+
+            const mainLogsContent = document.getElementById('main-logs-content');
+            const commandsLogsContent = document.getElementById('commands-logs-content');
+            const mainLogsContainer = document.querySelector('.main-logs-container');
+            const commandsLogsContainer = document.querySelector('.commands-logs-container');
+
+            if (systemData.logs && systemData.logs.length > 0) {
+                mainLogsContent.innerHTML = '';
+                
+                let errorCount = 0;
+                let warningCount = 0;
+                
+                systemData.logs.slice(-100).forEach(log => {
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'log-entry';
+                    logEntry.style.margin = '2px 0';
+                    logEntry.style.padding = '2px';
+                    logEntry.style.wordWrap = 'break-word';
+                    logEntry.style.whiteSpace = 'pre-wrap';
+
+                    const timestamp = new Date().toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+
+                    if (log.includes('❌') || log.includes('ERROR')) {
+                        logEntry.className += ' error';
+                        logEntry.style.color = '#ff4444';
+                        errorCount++;
+                    } else if (log.includes('⚠️') || log.includes('WARN')) {
+                        logEntry.className += ' warn';
+                        logEntry.style.color = '#ffaa00';
+                        warningCount++;
+                    } else if (log.includes('✅') || log.includes('SUCCESS')) {
+                        logEntry.className += ' success';
+                        logEntry.style.color = '#44ff44';
+                    } else {
+                        logEntry.style.color = '#00ff00';
+                    }
+
+                    logEntry.textContent = `[${timestamp}] ${log}`;
+                    mainLogsContent.appendChild(logEntry);
+                });
+
+                // Force scroll to bottom
+                setTimeout(() => {
+                    if (mainLogsContainer) {
+                        mainLogsContainer.scrollTop = mainLogsContainer.scrollHeight;
+                    }
+                }, 100);
+
+                // Update statistics
+                document.getElementById('total-logs-count').textContent = systemData.logs.length;
+                document.getElementById('error-logs-count').textContent = errorCount;
+                document.getElementById('warning-logs-count').textContent = warningCount;
+                document.getElementById('last-update-time').textContent = new Date().toLocaleTimeString();
+            }
+
+            if (systemData.commands && systemData.commands.length > 0) {
+                commandsLogsContent.innerHTML = '';
+                
+                systemData.commands.slice(-50).forEach(command => {
+                    const commandEntry = document.createElement('div');
+                    commandEntry.className = 'log-entry command';
+                    commandEntry.style.margin = '2px 0';
+                    commandEntry.style.padding = '2px';
+                    commandEntry.style.color = '#66ffff';
+                    commandEntry.style.wordWrap = 'break-word';
+                    commandEntry.style.whiteSpace = 'pre-wrap';
+                    
+                    const timestamp = new Date().toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+
+                    commandEntry.textContent = `[${timestamp}] ${command}`;
+                    commandsLogsContent.appendChild(commandEntry);
+                });
+
+                // Force scroll to bottom
+                setTimeout(() => {
+                    if (commandsLogsContainer) {
+                        commandsLogsContainer.scrollTop = commandsLogsContainer.scrollHeight;
+                    }
+                }, 100);
+                
+                document.getElementById('commands-count').textContent = systemData.commands.length;
+            }
+        }
+
+        function sendCommand() {
+            const commandInput = document.getElementById('command-input');
+            const command = commandInput.value.trim();
+
+            if (!command) return;
+
+            if (!command.startsWith('=')) {
+                showMessage('Command must start with =', 'error');
+                return;
+            }
+
+            fetch('/api/command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message || 'Command executed successfully', 'success');
+                } else {
+                    showMessage(data.error || 'Command failed', 'error');
+                }
+                commandInput.value = '';
+            })
+            .catch(error => {
+                showMessage('Network error: ' + error.message, 'error');
+                console.error('Command error:', error);
+            });
+        }
+
+        function executeCommand(command, parameter = '') {
+            let fullCommand = '=' + command;
+            if (parameter && parameter.trim()) {
+                fullCommand += ' ' + parameter.trim();
+            }
+
+            fetch('/api/command', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: fullCommand })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message || 'Command executed successfully', 'success');
+                } else {
+                    showMessage(data.error || 'Command failed', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Network error: ' + error.message, 'error');
+            });
+        }
+
+        function addBot() {
+            const tokenData = document.getElementById('tokenData').value.trim();
+            if (!tokenData) {
+                showMessage('Please enter: token server_id channel_id', 'error');
+                return;
+            }
+
+            const parts = tokenData.split(' ');
+            if (parts.length !== 3) {
+                showMessage('Format: token server_id channel_id', 'error');
+                return;
+            }
+
+            executeCommand('addbot', tokenData);
+            document.getElementById('tokenData').value = '';
+        }
+
+        // Enhanced bot addition function for the new interface
+        function addBotAdvanced() {
+            const token = document.getElementById('botToken').value.trim();
+            const serverId = document.getElementById('serverId').value.trim();
+            const channelId = document.getElementById('channelId').value.trim();
+
+            if (!token || !serverId || !channelId) {
+                showMessage('Please fill all fields: Token, Server ID, Channel ID', 'error');
+                return;
+            }
+
+            const fullCommand = `${token} ${serverId} ${channelId}`;
+            executeCommand('addbot', fullCommand);
+
+            // Clear form
+            document.getElementById('botToken').value = '';
+            document.getElementById('serverId').value = '';
+            document.getElementById('channelId').value = '';
+            document.getElementById('secretKey').value = '';
+        }
+
+        // Add token using the new management interface
+        function addBotToken() {
+            const token = document.getElementById('newToken').value.trim();
+            const serverId = document.getElementById('newServerId').value.trim();
+            const channelId = document.getElementById('newChannelId').value.trim();
+
+            if (!token || !serverId || !channelId) {
+                showMessage('Please fill all fields: Token, Server ID, Channel ID', 'error');
+                return;
+            }
+
+            // Validate IDs
+            if (!/^\d+$/.test(serverId)) {
+                showMessage('Server ID must contain only numbers', 'error');
+                return;
+            }
+
+            if (!/^\d+$/.test(channelId)) {
+                showMessage('Channel ID must contain only numbers', 'error');
+                return;
+            }
+
+            // Validate token format (basic check)
+            if (token.length < 50) {
+                showMessage('Token seems too short. Please check your bot token.', 'warning');
+            }
+
+            const fullCommand = `${token} ${serverId} ${channelId}`;
+            executeCommand('addbot', fullCommand);
+
+            // Clear form
+            document.getElementById('newToken').value = '';
+            document.getElementById('newServerId').value = '';
+            document.getElementById('newChannelId').value = '';
+            document.getElementById('secretKeyInput').value = '';
+
+            // Refresh token list
+            setTimeout(() => {
+                refreshTokens();
+            }, 2000);
+        }
+
+        // Toggle password visibility
+        function toggleTokenVisibility(elementId = 'botToken') {
+            const element = document.getElementById(elementId);
+            if (element.type === 'password') {
+                element.type = 'text';
+            } else {
+                element.type = 'password';
+            }
+        }
+
+        // Use secret from Replit Secrets
+        function useSecret() {
+            const secretKey = document.getElementById('secretKey').value.trim();
+            if (!secretKey) {
+                showMessage('Please enter a secret key', 'error');
+                return;
+            }
+
+            // Try to get the secret value from environment variables
+            // Note: This is a client-side limitation - we can't directly access secrets
+            showMessage(`To use Secret "${secretKey}", add it in Tools > Secrets, then paste the value manually`, 'warning');
+            
+            // Focus on token input for manual paste
+            document.getElementById('botToken').focus();
+            document.getElementById('botToken').placeholder = `Paste value of ${secretKey} here`;
+        }
+
+        // Load token from Replit Secret (new management interface)
+        function loadFromSecret() {
+            const secretKey = document.getElementById('secretKeyInput').value.trim();
+            if (!secretKey) {
+                showMessage('Please enter a secret key', 'error');
+                return;
+            }
+
+            showMessage(`Go to Tools > Secrets to add "${secretKey}", then paste the value in the token field below`, 'warning');
+            
+            // Focus on token input
+            document.getElementById('newToken').focus();
+            document.getElementById('newToken').placeholder = `Paste value of ${secretKey} here`;
+        }
+
+        // Refresh token list
+        function refreshTokens() {
+            executeCommand('listtokens');
+            showMessage('Refreshing token list...', 'normal');
+        }
+
+        function showMessage(message, type) {
+            addLogLine(message, type);
+        }
+
+        function updateTokenManagementView() {
+            if (currentView !== 'token-management') return;
+
+            const tokenListContent = document.getElementById('token-list-content');
+            
+            if (systemData.tokensInfo && systemData.tokensInfo.tokens && systemData.tokensInfo.tokens.length > 0) {
+                tokenListContent.innerHTML = '';
+                
+                systemData.tokensInfo.tokens.forEach((token, index) => {
+                    const tokenEntry = document.createElement('div');
+                    tokenEntry.style.cssText = `
+                        margin: 10px 0; 
+                        padding: 10px; 
+                        border: 1px solid #333; 
+                        border-radius: 3px; 
+                        background-color: rgba(0,255,0,0.05);
+                        color: #00ff00;
+                    `;
+                    
+                    tokenEntry.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <div style="font-weight: bold; color: #66ff66;">${token.tokenKey}</div>
+                            <button onclick="removeTokenConfirm('${token.tokenKey}')" style="background-color: #660000; border: 1px solid #ff4444; color: #ff4444; padding: 2px 8px; font-size: 9px; cursor: pointer;">Remove</button>
+                        </div>
+                        <div style="font-size: 10px; color: #888;">
+                            Server: ${token.serverId}<br>
+                            Channel: ${token.channelId}<br>
+                            Created: ${new Date(token.createdAt).toLocaleString()}<br>
+                            Status: <span style="color: ${token.active ? '#66ff66' : '#ff6666'}">${token.active ? 'Active' : 'Inactive'}</span>
+                        </div>
+                    `;
+                    
+                    tokenListContent.appendChild(tokenEntry);
+                });
+            } else {
+                tokenListContent.innerHTML = '<div class="log-entry" style="color: #888;">No tokens found. Add tokens to see them here.</div>';
+            }
+        }
+
+        function removeTokenConfirm(tokenKey) {
+            if (confirm(`Are you sure you want to remove ${tokenKey}?`)) {
+                executeCommand('removebot', tokenKey);
+                setTimeout(() => {
+                    updateTokenManagementView();
+                    refreshTokens();
+                }, 1000);
+            }
+        }
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/logs');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Response is not JSON');
+                }
+                
+                const data = await response.json();
+                systemData = data;
+
+                requestsElement.textContent = data.requests || 0;
+                spamStatusElement.textContent = data.spamStatus ? 'ACTIVE' : 'INACTIVE';
+                spamStatusElement.style.color = data.spamStatus ? '#ff6600' : '#00ff00';
+
+                if (data.logs && data.logs.length > 0) {
+                    data.logs.forEach(log => {
+                        let type = 'normal';
+
+                        if (log.includes('❌') || log.includes('ERROR')) {
+                            type = 'error';
+                        } else if (log.includes('⚠️') || log.includes('WARN')) {
+                            type = 'warning';
+                        } else if (log.includes('✅') || log.includes('SUCCESS')) {
+                            type = 'success';
+                        } else if (log.includes('logged in') || log.includes('joined successfully') || log.includes('ready')) {
+                            type = 'success';
+                        } else if (log.includes('connected') || log.includes('Starting bot')) {
+                            type = 'normal';
+                        }
+
+                        // Update bot status
+                        if (log.includes('Bot 1') && log.includes('logged in as')) {
+                            const username = log.match(/as (.+?)$/)?.[1] || '';
+                            updateBotStatus(1, true, username);
+                        } else if (log.includes('Bot 2') && log.includes('logged in as')) {
+                            const username = log.match(/as (.+?)$/)?.[1] || '';
+                            updateBotStatus(2, true, username);
+                        } else if (log.includes('Bot 3') && log.includes('logged in as')) {
+                            const username = log.match(/as (.+?)$/)?.[1] || '';
+                            updateBotStatus(3, true, username);
+                        }
+
+                        if (log.includes('disconnected')) {
+                            const botMatch = log.match(/Bot (\d+)/);
+                            if (botMatch) {
+                                updateBotStatus(parseInt(botMatch[1]), false);
+                            }
+                        }
+                    });
+                }
+
+                // Update bot state view if currently active
+                if (currentView === 'bot-state') {
+                    updateBotStateView();
+                }
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+            }
+        }
+
+        
+
+        // Logs view event listeners
+        document.getElementById('refresh-logs-btn')?.addEventListener('click', () => {
+            fetchLogs();
+            updateLogsView();
+        });
+
+        document.getElementById('clear-main-logs-btn')?.addEventListener('click', () => {
+            fetch('/api/clear-logs', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('main-logs-content').innerHTML = '<div class="log-entry">Logs cleared...</div>';
+                        document.getElementById('commands-logs-content').innerHTML = '<div class="log-entry">Commands cleared...</div>';
+                        showMessage('All logs cleared successfully', 'success');
+                    }
+                })
+                .catch(error => {
+                    showMessage('Failed to clear logs: ' + error.message, 'error');
+                });
+        });
+
+        document.getElementById('export-logs-btn')?.addEventListener('click', () => {
+            if (systemData.logs) {
+                const logsText = systemData.logs.join('\n');
+                const blob = new Blob([logsText], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `discord-bot-logs-${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessage('Logs exported successfully', 'success');
+            }
+        });
+
+        // Update every 2 seconds
+        setInterval(fetchLogs, 2000);
+        setInterval(updateUptime, 1000);
+        setInterval(() => {
+            if (currentView === 'logs') {
+                updateLogsView();
+            } else if (currentView === 'token-management') {
+                updateTokenManagementView();
+            }
+        }, 3000);
+
+        // Initial fetch
+        fetchLogs();
+        updateUptime();
+        updateBotStateView();
+
+        // Add event listeners
+        executeBtn.addEventListener('click', sendCommand);
+        commandInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendCommand();
+            }
+        });
+
+        // Focus on command input
+        commandInput.focus();
+    </script>
+</body>
+</html>
